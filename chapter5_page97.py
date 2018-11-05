@@ -22,9 +22,16 @@ def inference(input_tensor,avg_calss,weights1,biases1,weights2,biases2):
         layer1=tf.nn.relu(tf.matmul(input_tensor,avg_calss.average(weights1))+avg_calss.average(biases1))
         return tf.matmul(layer1,avg_calss.average(weights2)+avg_calss.average(biases2))
 
+def train(mnist):
+    x=tf.placeholder(tf.float32,[None,INPUT_NODE],name='x-input')
+    y_=tf.placeholder(tf.float32,[None,OUTPUT_NODE],name='y-input')
+    weights1=tf.Variable(tf.truncated_normal([INPUT_NODE,LAYER1_NODE],stddev=0.1))
+    biases1=tf.Variable(tf.constant(0.1,shape=[LAYER1_NODE]))
+
 def main(argv=None):
     #mnist=input_data.read_data_sets("/tmp/data",one_hot=True)
     mnist = input_data.read_data_sets("/path/to/MNIST_data", one_hot=True)
     print(mnist.train.num_examples)
 
 
+main()
