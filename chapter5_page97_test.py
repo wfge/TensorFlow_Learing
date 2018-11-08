@@ -1,29 +1,36 @@
+# coding: utf-8
+
+# In[1]:
+
+
 import tensorflow as tf
-import os,sys
 from tensorflow.examples.tutorials.mnist import input_data
 
-INPUT_NODE=784
-OUTPUT_NODE=10
+# #### 1.设置输入和输出节点的个数,配置神经网络的参数。
 
-LAYER1_NODE=500
-BATCH_SIZE=100
+# In[2]:
 
-LEARNING_RATE_BASE=0.8
-LEARNING_RATE_DECAY=0.99
-REGULARIZATION_RATE=0.0001
-TRAINING_STEPS=5000
-MOVING_AVERAGE_DECAY=0.99
 
-def inference(input_tensor,avg_class,weights1,biases1,weights2,biases2):
-    if avg_class == None:
-        layer1 = tf.nn.relu(tf.matmul(input_tensor, weights1) + biases1)
-        return tf.matmul(layer1, weights2) + biases2
-    else:
-        # 使用滑动平均类
-        layer1 = tf.nn.relu(tf.matmul(input_tensor, avg_class.average(weights1)) + avg_class.average(biases1))
-        #return tf.matmul(layer1, avg_class.average(weights2) + avg_class.average(biases2))
-        return tf.matmul(layer1, avg_class.average(weights2) )+ avg_class.average(biases2)#这里一个括号的位置写错了的调试错误调试了好久
-def inference1(input_tensor, avg_class, weights1, biases1, weights2, biases2):
+INPUT_NODE = 784  # 输入节点
+OUTPUT_NODE = 10  # 输出节点
+LAYER1_NODE = 500  # 隐藏层数
+
+BATCH_SIZE = 100  # 每次batch打包的样本个数
+
+# 模型相关的参数
+LEARNING_RATE_BASE = 0.8
+LEARNING_RATE_DECAY = 0.99
+REGULARAZTION_RATE = 0.0001
+TRAINING_STEPS = 5000
+MOVING_AVERAGE_DECAY = 0.99
+
+
+# #### 2. 定义辅助函数来计算前向传播结果，使用ReLU做为激活函数。
+
+# In[3]:
+
+
+def inference(input_tensor, avg_class, weights1, biases1, weights2, biases2):
     # 不使用滑动平均类
     if avg_class == None:
         layer1 = tf.nn.relu(tf.matmul(input_tensor, weights1) + biases1)
@@ -35,64 +42,12 @@ def inference1(input_tensor, avg_class, weights1, biases1, weights2, biases2):
         return tf.matmul(layer1, avg_class.average(weights2)) + avg_class.average(biases2)
 
     # #### 3. 定义训练过程。
+
+
+# In[4]:
+
+
 def train(mnist):
-    x=tf.placeholder(tf.float32,[None,INPUT_NODE],name='x-input')
-    y_=tf.placeholder(tf.float32,[None,OUTPUT_NODE],name='y-input')
-    weights1=tf.Variable(tf.truncated_normal([INPUT_NODE,LAYER1_NODE],stddev=0.1))
-    biases1=tf.Variable(tf.constant(0.1,shape=[LAYER1_NODE]))
-
-    weights2=tf.Variable(tf.truncated_normal([LAYER1_NODE,OUTPUT_NODE],stddev=0.1))
-    biases2=tf.Variable(tf.constant(0.1,shape=[OUTPUT_NODE]))
-
-    y=inference(x,None,weights1,biases1,weights2,biases2)
-
-    global_step=tf.Variable(0,trainable=False)
-
-    variable_averges=tf.train.ExponentialMovingAverage(MOVING_AVERAGE_DECAY,global_step)
-    variable_averges_op=variable_averges.apply(tf.trainable_variables())
-
-    average_y=inference(x,variable_averges,weights1,biases1,weights2,biases2)
-
-    cross_entroy=tf.nn.sparse_softmax_cross_entropy_with_logits(logits=y,labels=tf.argmax(y_,1))
-    cross_entroy_mean=tf.reduce_mean(cross_entroy)
-
-    regularizer=tf.contrib.layers.l2_regularizer(REGULARIZATION_RATE)
-    regularization=regularizer(weights1)+regularizer(weights2)
-
-    loss=cross_entroy_mean+regularization
-
-    learning_rate=tf.train.exponential_decay(
-        LEARNING_RATE_BASE,
-        global_step,
-        mnist.train.num_examples/BATCH_SIZE,
-        LEARNING_RATE_DECAY,
-        staircase=True
-    )
-    train_step=tf.train.GradientDescentOptimizer(learning_rate).minimize(loss,global_step=global_step)
-
-    with tf.control_dependencies([train_step,variable_averges_op]):
-        train_op=tf.no_op(name='train')
-
-    correct_precdiction=tf.equal(tf.argmax(average_y,1),tf.argmax(y_,1))
-    accury=tf.reduce_mean(tf.cast(correct_precdiction,tf.float32))
-
-    with tf.Session() as sess:
-        tf.global_variables_initializer().run()
-        validate_feed={x:mnist.validation.images,y_:mnist.validation.labels}
-
-        test_feed={x:mnist.test.images,y_:mnist.test.labels}
-
-        for i in range(TRAINING_STEPS):
-            if i%1000==0:
-                validate_acc=sess.run(accury,feed_dict=validate_feed)
-                print("After %d training steps ,validation accury using average model is %g" %(i,validate_acc))
-
-            xs,ys=mnist.train.next_batch(BATCH_SIZE)
-            sess.run(train_op,feed_dict={x:xs,y_:ys})
-
-        test_acc=sess.run(accury,feed_dict=test_feed)
-        print("After %d training steps,test accury using average model is %g"%(TRAINING_STEPS,test_acc))
-def train1(mnist):
     x = tf.placeholder(tf.float32, [None, INPUT_NODE], name='x-input')
     y_ = tf.placeholder(tf.float32, [None, OUTPUT_NODE], name='y-input')
     # 生成隐藏层的参数。
@@ -116,7 +71,7 @@ def train1(mnist):
     cross_entropy_mean = tf.reduce_mean(cross_entropy)
 
     # 损失函数的计算
-    regularizer = tf.contrib.layers.l2_regularizer(REGULARIZATION_RATE)
+    regularizer = tf.contrib.layers.l2_regularizer(REGULARAZTION_RATE)
     regularaztion = regularizer(weights1) + regularizer(weights2)
     loss = cross_entropy_mean + regularaztion
 
@@ -158,12 +113,17 @@ def train1(mnist):
         print(("After %d training step(s), test accuracy using average model is %g" % (TRAINING_STEPS, test_acc)))
 
 
+# #### 4. 主程序入口，这里设定模型训练次数为5000次。
+
+# In[5]:
+
+
 def main(argv=None):
-    #mnist=input_data.read_data_sets("/tmp/data",one_hot=True)
+    #mnist = input_data.read_data_sets("../../../datasets/MNIST_data", one_hot=True)
     mnist = input_data.read_data_sets("/path/to/MNIST_data", one_hot=True)
     train(mnist)
 
-if __name__=='__main__':
-    main()
 
+if __name__ == '__main__':
+    main()
 
