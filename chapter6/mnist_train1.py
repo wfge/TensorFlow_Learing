@@ -5,7 +5,7 @@ import os
 import numpy as np
 
 BATCH_SIZE = 100
-LEARNING_RATE_BASE = 0.8
+LEARNING_RATE_BASE = 0.01         #这里曾经从书上照抄，学习率是0.8，但是后汉loss巨高都nan了，后来看了网上源码改为0.01，看来学习率对着机器学习的影响非常巨大呀，玄学调参
 LEARNING_RATE_DECAY = 0.99
 REGULARIZATION_RATE = 0.0001
 TRAINING_STEPS = 30000
