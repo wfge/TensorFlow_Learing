@@ -61,7 +61,8 @@ def create_image_lists(sess,testing_percentage,validation_percentage):
     np.random.set_state(state)
     np.random.shuffle(training_labels)
 
-    return  np.asarray([training_images,training_labels,validation_images,validation_labels])
+    return  np.asarray([training_images,training_labels,validation_images,validation_labels,testing_images,testing_labels])
+
 
 def main():
     with tf.Session() as sess:
